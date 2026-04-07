@@ -7,7 +7,7 @@ A simple command-line interface to chat with any instruction-tuned LLM from the 
 - Supports any model with a chat template.
 - Automatic device mapping (CPU/GPU).
 - **Session management**: Save and load chat history automatically.
-- **Core Tool Use**: Built-in tools that allow the model to interact with your system.
+- **Opt-in Core Tools**: Choose which system tools to enable for the model.
 
 ## Prerequisites
 - Python 3.8+
@@ -23,26 +23,26 @@ A simple command-line interface to chat with any instruction-tuned LLM from the 
 ## Usage
 
 ### Basic Chat
-Start with the default model (`SmolLM2-1.7B-Instruct`):
+Start with the default model (`SmolLM2-1.7B-Instruct`) and **no tools enabled**:
 ```bash
 python chat.py
 ```
 
-### Core Tools
-The application provides the following powerful built-in tools:
-- `run_shell_command`: Execute any bash command and see the output.
-- `read_file`: Read the content of any file on your system.
-- `write_file`: Create or overwrite files with specific content.
-- `calculate`: Evaluate mathematical expressions.
+### Enabling Core Tools
+By default, all tools are disabled for security. You can enable them individually using flags:
 
-**Example queries:**
-- *"What files are in my current directory?"*
-- *"Read the content of requirements.txt"*
-- *"Create a script named hello.py that prints 'Hello World'"*
-- *"What is 1234 * 5678?"*
+- **`--calculate`**: Enable mathematical expression evaluation.
+- **`--shell`**: Enable execution of bash shell commands.
+- **`--read`**: Enable reading files from your system.
+- **`--write`**: Enable writing or updating files on your system.
+
+**Example: Enable shell and file reading**
+```bash
+python chat.py --shell --read
+```
 
 > [!WARNING]
-> **Security Note**: These tools give the LLM direct access to your shell and file system. Always review the tool calls (indicated by `[*] Calling tool: ...`) before they execute.
+> **Security Note**: Enabling `--shell`, `--read`, or `--write` gives the LLM direct access to your system. Always review the tool calls (indicated by `[*] Calling tool: ...`) in your console.
 
 ### Save/Load Sessions
 Sessions are saved to the `sessions/` directory.
@@ -51,12 +51,9 @@ Sessions are saved to the `sessions/` directory.
   ```bash
   python chat.py --load sessions/chat_20260407_120000.json
   ```
-- **Custom session name**:
-  ```bash
-  python chat.py --session_name my_session
-  ```
 
 ### Advanced Options
-- `--model`: Hugging Face model ID (default: `HuggingFaceTB/SmolLM2-1.7B-Instruct`).
-- `--no_tools`: Disable all tool-use functionality.
+- `--model`: Hugging Face model ID.
 - `--max_tokens`: Maximum new tokens to generate (default: 500).
+- `--no_save`: Disable session saving.
+- `--session_name`: Set a custom name for the saved session.

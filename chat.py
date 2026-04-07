@@ -78,8 +78,6 @@ def write_file(path: str, content: str):
     except Exception as e:
         return {"error": str(e), "path": path}
 
-DEFAULT_TOOLS = [calculate, run_shell_command, read_file, write_file]
-
 # --- Helper Functions ---
 
 def save_session(messages, filename, model_name):
@@ -101,7 +99,7 @@ def load_session(filename):
         return json.load(f)
 
 def main():
-    parser = argparse.ArgumentParser(description="A minimal CLI chat application using transformers with core tool-use support.")
+    parser = argparse.ArgumentParser(description="A minimal CLI chat application using transformers with opt-in core tool-use support.")
     parser.add_argument(
         "--model", 
         type=str, 
@@ -129,20 +127,23 @@ def main():
         type=str,
         help="Custom name for the session file"
     )
-    parser.add_argument(
-        "--no_tools",
-        action="store_true",
-        help="Disable tool-use functionality"
-    )
+    
+    # Tool-enabling flags
+    parser.add_argument("--calculate", action="store_true", help="Enable the calculation tool")
+    parser.add_argument("--shell", action="store_true", help="Enable the shell command tool")
+    parser.add_argument("--read", action="store_true", help="Enable the file reading tool")
+    parser.add_argument("--write", action="store_true", help="Enable the file writing tool")
+    
     args = parser.parse_args()
 
-    # Load core tools
+    # Load core tools based on opt-in flags
     tools = []
-    tool_map = {}
+    if args.calculate: tools.append(calculate)
+    if args.shell: tools.append(run_shell_command)
+    if args.read: tools.append(read_file)
+    if args.write: tools.append(write_file)
     
-    if not args.no_tools:
-        tools = DEFAULT_TOOLS
-        tool_map = {t.__name__: t for t in tools}
+    tool_map = {t.__name__: t for t in tools}
 
     # Setup session file
     session_dir = "sessions"
@@ -200,8 +201,12 @@ def main():
     if tools:
         tool_names = [t.__name__ for t in tools]
         print(f"Tools enabled: {tool_names}")
-        if not args.no_tools:
-            print("\033[91mWARNING: This model has access to your shell and file system. Proceed with caution.\033[0m")
+        # Only show the warning if shell, read, or write tools are enabled
+        if any([args.shell, args.read, args.write]):
+            print("\033[91mWARNING: This model has access to your shell and/or file system. Proceed with caution.\033[0m")
+    else:
+        print("No tools enabled.")
+
     if session_file and not args.no_save:
         print(f"This session will be saved to: {session_file}")
     print("-" * 50)
