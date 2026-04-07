@@ -36,10 +36,11 @@ By default, all tools are disabled for security. You can enable them individuall
 - **`--read`**: Enable reading files from your system.
 - **`--write`**: Enable writing or updating files on your system.
 - **`--yolo`**: Enable **all** core tools at once (BE CAREFUL).
+- **`--system_prompt`**: Path to a text file containing a custom system prompt.
 
-**Example: Enable all tools**
+**Example: Use a custom system prompt**
 ```bash
-python chat.py --yolo
+python chat.py --system_prompt my_prompt.txt
 ```
 
 > [!WARNING]

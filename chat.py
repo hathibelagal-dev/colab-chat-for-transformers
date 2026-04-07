@@ -127,6 +127,11 @@ def main():
         type=str,
         help="Custom name for the session file"
     )
+    parser.add_argument(
+        "--system_prompt",
+        type=str,
+        help="Path to a text file containing a custom system prompt"
+    )
     
     # Tool-enabling flags
     parser.add_argument("--calculate", action="store_true", help="Enable the calculation tool")
@@ -151,8 +156,17 @@ def main():
     if not args.no_save and not os.path.exists(session_dir):
         os.makedirs(session_dir)
 
+    system_content = "You are a helpful assistant. You have access to tools to help answer questions if needed."
+    if args.system_prompt:
+        try:
+            with open(args.system_prompt, 'r') as f:
+                system_content = f.read().strip()
+            print(f"Loaded system prompt from: {args.system_prompt}")
+        except Exception as e:
+            print(f"Error loading system prompt file: {e}. Using default.")
+
     messages = [
-        {"role": "system", "content": "You are a helpful assistant. You have access to tools to help answer questions if needed."},
+        {"role": "system", "content": system_content},
     ]
     
     current_model = args.model
