@@ -206,7 +206,7 @@ def main():
             "text-generation", 
             model=current_model, 
             device_map="auto",
-            torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32
+            dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32
         )
         # Configure generation defaults to avoid warnings
         # We set these on the model's generation_config once
