@@ -2,12 +2,11 @@ import argparse
 import json
 import os
 import torch
-import importlib.util
 import subprocess
 from datetime import datetime
 from transformers import pipeline
 
-# --- Default Tools ---
+# --- Core Tools ---
 
 def calculate(expression: str):
     """
@@ -83,41 +82,6 @@ DEFAULT_TOOLS = [calculate, run_shell_command, read_file, write_file]
 
 # --- Helper Functions ---
 
-def load_tools_from_file(file_path):
-    """Loads a list of tool functions from a Python file."""
-    if not os.path.exists(file_path):
-        print(f"Error: Tools file '{file_path}' not found.")
-        return []
-    
-    spec = importlib.util.spec_from_file_location("external_tools", file_path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    
-    if hasattr(module, "tools") and isinstance(module.tools, list):
-        return module.tools
-    else:
-        return [getattr(module, name) for name in dir(module) 
-                if callable(getattr(module, name)) and not name.startswith("_") 
-                and getattr(module, name).__doc__]
-
-def load_tools_from_json(file_path):
-    """Loads a list of tool schemas from a JSON file."""
-    if not os.path.exists(file_path):
-        print(f"Error: JSON Tools file '{file_path}' not found.")
-        return []
-    
-    try:
-        with open(file_path, 'r') as f:
-            tools_json = json.load(f)
-            # Ensure it's a list
-            if not isinstance(tools_json, list):
-                print("Error: JSON tools file must contain a list of tool schemas.")
-                return []
-            return tools_json
-    except Exception as e:
-        print(f"Error loading JSON tools: {e}")
-        return []
-
 def save_session(messages, filename, model_name):
     """Saves the conversation history to a JSON file."""
     data = {
@@ -137,7 +101,7 @@ def load_session(filename):
         return json.load(f)
 
 def main():
-    parser = argparse.ArgumentParser(description="A minimal CLI chat application using transformers with tool-use support.")
+    parser = argparse.ArgumentParser(description="A minimal CLI chat application using transformers with core tool-use support.")
     parser.add_argument(
         "--model", 
         type=str, 
@@ -170,46 +134,15 @@ def main():
         action="store_true",
         help="Disable tool-use functionality"
     )
-    parser.add_argument(
-        "--tools_file",
-        type=str,
-        help="Path to a Python file containing custom tool functions"
-    )
-    parser.add_argument(
-        "--tools_json",
-        type=str,
-        help="Path to a JSON file containing tool schemas"
-    )
     args = parser.parse_args()
 
-    # Load tools
+    # Load core tools
     tools = []
     tool_map = {}
     
     if not args.no_tools:
-        if args.tools_file:
-            tools = load_tools_from_file(args.tools_file)
-            tool_map = {t.__name__: t for t in tools}
-        elif args.tools_json:
-            tools = load_tools_from_json(args.tools_json)
-            # For JSON tools, we use names for the map
-            # Try to map names to built-in functions if they exist
-            built_in_map = {t.__name__: t for t in DEFAULT_TOOLS}
-            for t in tools:
-                # JSON tools are dictionaries
-                if isinstance(t, dict):
-                    # Handle both standard and function formats
-                    name = t.get("name") or t.get("function", {}).get("name")
-                    if name in built_in_map:
-                        tool_map[name] = built_in_map[name]
-                    else:
-                        # Define a mock executor for unknown JSON tools
-                        def mock_tool(**kwargs):
-                            return {"status": "success", "message": "Tool executed (mock)", "args_received": kwargs}
-                        tool_map[name] = mock_tool
-        else:
-            tools = DEFAULT_TOOLS
-            tool_map = {t.__name__: t for t in tools}
+        tools = DEFAULT_TOOLS
+        tool_map = {t.__name__: t for t in tools}
 
     # Setup session file
     session_dir = "sessions"
@@ -265,8 +198,7 @@ def main():
 
     print("\nChat started! Type 'exit' or 'quit' to end the conversation.")
     if tools:
-        # For display, get names from functions or dictionaries
-        tool_names = [t.__name__ if hasattr(t, "__name__") else (t.get("name") or t.get("function", {}).get("name")) for t in tools]
+        tool_names = [t.__name__ for t in tools]
         print(f"Tools enabled: {tool_names}")
         if not args.no_tools:
             print("\033[91mWARNING: This model has access to your shell and file system. Proceed with caution.\033[0m")
