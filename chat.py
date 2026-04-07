@@ -4,7 +4,7 @@ import os
 import torch
 import subprocess
 from datetime import datetime
-from transformers import pipeline
+from transformers import pipeline, TextStreamer
 
 # --- Core Tools ---
 
@@ -215,6 +215,11 @@ def main():
         # Silence the 'max_length' vs 'max_new_tokens' warning
         pipe.model.generation_config.max_length = None
         
+        # Initialize streamer only if no tools are enabled
+        streamer = None
+        if not tools:
+            streamer = TextStreamer(pipe.tokenizer, skip_prompt=True, skip_special_tokens=True)
+        
     except Exception as e:
         print(f"Error loading model: {e}")
         return
@@ -248,16 +253,22 @@ def main():
 
             # Tool-use loop
             while True:
+                # If streaming is enabled, print the prefix first
+                if streamer and not (messages[-1]["role"] == "tool"):
+                    print("Assistant: ", end="", flush=True)
+
                 # Call pipeline without generation-related args to avoid warnings
                 # as they are now set in pipe.model.generation_config
                 outputs = pipe(
                     messages, 
-                    tools=tools if tools else None
+                    tools=tools if tools else None,
+                    streamer=streamer
                 )
                 
                 assistant_message = outputs[0]["generated_text"][-1]
                 
                 if "tool_calls" in assistant_message and assistant_message["tool_calls"]:
+                    # Tool calls aren't streamed by our logic, so we show them as before
                     messages.append(assistant_message)
                     
                     for tool_call in assistant_message["tool_calls"]:
@@ -283,8 +294,14 @@ def main():
                     
                     continue
                 else:
-                    assistant_response = assistant_message.get("content", "")
-                    print(f"Assistant: {assistant_response}")
+                    # If not streaming, print the full response now
+                    if not streamer:
+                        assistant_response = assistant_message.get("content", "")
+                        print(f"Assistant: {assistant_response}")
+                    else:
+                        # Streamer finished, add a newline
+                        print()
+                    
                     messages.append(assistant_message)
                     break
 
