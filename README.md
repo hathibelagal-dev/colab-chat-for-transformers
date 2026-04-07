@@ -15,17 +15,17 @@ A simple command-line interface to chat with any instruction-tuned LLM from the 
 
 ## Installation
 
-1. Install dependencies:
+1. Clone the repository and install it using pip:
    ```bash
-   pip install -r requirements.txt
+   pip install .
    ```
 
 ## Usage
 
 ### Basic Chat
-Start with the default model (`SmolLM2-1.7B-Instruct`) and **no tools enabled**:
+Once installed, you can start the chat from anywhere in your terminal using the `colab_chat` command:
 ```bash
-python chat.py
+colab_chat
 ```
 
 ### Enabling Core Tools
@@ -38,21 +38,22 @@ By default, all tools are disabled for security. You can enable them individuall
 - **`--yolo`**: Enable **all** core tools at once (BE CAREFUL).
 - **`--system_prompt`**: Path to a text file containing a custom system prompt.
 
-**Example: Use a custom system prompt**
+**Example: Enable all tools**
 ```bash
-python chat.py --system_prompt my_prompt.txt
+colab_chat --yolo
 ```
 
 > [!WARNING]
 > **Security Note**: Enabling `--shell`, `--read`, `--write`, or `--yolo` gives the LLM direct access to your system. Always review the tool calls (indicated by `[*] Calling tool: ...`) in your console.
 
 ### Save/Load Sessions
-Sessions are saved to the `sessions/` directory.
+Sessions are saved to the `sessions/` directory in your current working folder.
 
 - **Load a previous session**:
   ```bash
-  python chat.py --load sessions/chat_20260407_120000.json
+  colab_chat --load sessions/chat_20260407_120000.json
   ```
+
 
 ### Advanced Options
 - `--model`: Hugging Face model ID.
