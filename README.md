@@ -70,3 +70,7 @@ Sessions are saved to the `sessions/` directory in your current working folder.
 - `--max_tokens`: Maximum new tokens to generate (default: 8192).
 - `--no_save`: Disable session saving.
 - `--session_name`: Set a custom name for the saved session.
+
+## Authors
+- **Ashraff Hathibelagal**
+- **Gemini CLI** (Co-authored this project)

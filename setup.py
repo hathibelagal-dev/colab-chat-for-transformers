@@ -14,7 +14,7 @@ setup(
             "colab_chat=chat:main",
         ],
     },
-    author="Ashraff Hathibelagal",
+    author="Ashraff Hathibelagal & Gemini CLI",
     description="A minimal CLI chat application using transformers with core tool-use support.",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
