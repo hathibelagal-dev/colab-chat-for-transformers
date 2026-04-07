@@ -12,10 +12,9 @@ A minimal, secure-by-default CLI chat application for interacting with instructi
   - `write_file`: File creation and updates.
 - **Security Model**: Tools are disabled by default. Individual flags or `--yolo` required for activation.
 - **Customization**: Supports custom system prompts from text files via `--system_prompt`.
-- **Distribution**: Installable package with `colab_chat` console command.
+- **Distribution**: Available on [PyPI](https://pypi.org/project/colab-chat/) with `colab_chat` console command.
 
 ## Next Steps
-- Consider adding streaming support (currently skipped for UI simplicity with tool calls).
 - Support for multi-line user input.
 - Enhanced error handling for complex shell command outputs.
 - Transition to `pyproject.toml` for modern packaging.
@@ -23,7 +22,7 @@ A minimal, secure-by-default CLI chat application for interacting with instructi
 ## Usage
 ```bash
 # Install
-pip install .
+pip install colab-chat
 
 # Start Chat
 colab_chat --yolo

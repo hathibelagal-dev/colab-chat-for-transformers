@@ -1,5 +1,7 @@
 # Minimal Transformers CLI Chat Application
 
+[![PyPI version](https://badge.fury.io/py/colab-chat.svg)](https://pypi.org/project/colab-chat/)
+
 A simple command-line interface to chat with any instruction-tuned LLM from the Hugging Face Hub using the `transformers` library.
 
 ## Features
@@ -8,6 +10,7 @@ A simple command-line interface to chat with any instruction-tuned LLM from the 
 - Automatic device mapping (CPU/GPU).
 - **Session management**: Save and load chat history automatically.
 - **Opt-in Core Tools**: Choose which system tools to enable for the model.
+- **Streaming support**: Real-time token output when tools are disabled.
 
 ## Prerequisites
 - Python 3.8+
@@ -15,7 +18,14 @@ A simple command-line interface to chat with any instruction-tuned LLM from the 
 
 ## Installation
 
-1. Clone the repository and install it using pip:
+Install the package directly from PyPI:
+```bash
+pip install colab-chat
+```
+
+Alternatively, for local development:
+1. Clone the repository.
+2. Install it using pip:
    ```bash
    pip install .
    ```
