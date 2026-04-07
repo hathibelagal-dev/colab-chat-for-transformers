@@ -57,6 +57,6 @@ Sessions are saved to the `sessions/` directory in your current working folder.
 
 ### Advanced Options
 - `--model`: Hugging Face model ID.
-- `--max_tokens`: Maximum new tokens to generate (default: 500).
+- `--max_tokens`: Maximum new tokens to generate (default: 8192).
 - `--no_save`: Disable session saving.
 - `--session_name`: Set a custom name for the saved session.

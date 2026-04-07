@@ -109,8 +109,8 @@ def main():
     parser.add_argument(
         "--max_tokens",
         type=int,
-        default=500,
-        help="Maximum number of tokens to generate (default: 500)"
+        default=8192,
+        help="Maximum number of tokens to generate (default: 8192)"
     )
     parser.add_argument(
         "--load",
