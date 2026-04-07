@@ -7,7 +7,7 @@ A simple command-line interface to chat with any instruction-tuned LLM from the 
 - Supports any model with a chat template.
 - Automatic device mapping (CPU/GPU).
 - **Session management**: Save and load chat history automatically.
-- **Tool Use (Function Calling)**: Support for models that can call external functions.
+- **Advanced Tool Use**: Support for models that can interact with your system.
 
 ## Prerequisites
 - Python 3.8+
@@ -28,8 +28,23 @@ Start with the default model (`SmolLM2-1.7B-Instruct`):
 python chat.py
 ```
 
-### Tool Use
-The application includes built-in tools like `get_weather` and `calculate`.
+### Core Tools
+By default, the application provides the following powerful tools:
+- `run_shell_command`: Execute any bash command and see the output.
+- `read_file`: Read the content of any file on your system.
+- `write_file`: Create or overwrite files with specific content.
+- `calculate`: Evaluate mathematical expressions.
+
+**Example queries:**
+- *"What files are in my current directory?"* (runs `ls`)
+- *"Read the content of requirements.txt"*
+- *"Create a script named hello.py that prints 'Hello World'"*
+- *"What is the result of 1234 * 5678?"*
+
+> [!WARNING]
+> **Security Note**: These tools give the LLM direct access to your shell and file system. Always review the tool calls (indicated by `[*] Calling tool: ...`) before they execute if you are using an untrusted model.
+
+### Custom Tool Definitions
 
 #### 1. Python Tool Definitions
 Create a Python file and define functions with Google-style docstrings.
@@ -42,26 +57,6 @@ You can also pass tool schemas via a JSON file.
 ```bash
 python chat.py --tools_json tools.json
 ```
-**Example `tools.json`**:
-```json
-[
-  {
-    "type": "function",
-    "function": {
-      "name": "get_stock_price",
-      "description": "Get current stock price",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "symbol": {"type": "string"}
-        },
-        "required": ["symbol"]
-      }
-    }
-  }
-]
-```
-*Note: If the tool name in the JSON matches a built-in function (e.g., `get_weather`), it will use that function. Otherwise, it will provide a mock response for testing.*
 
 ### Save/Load Sessions
 Sessions are saved to the `sessions/` directory.
@@ -73,5 +68,5 @@ Sessions are saved to the `sessions/` directory.
 
 ### Advanced Options
 - `--model`: Hugging Face model ID.
-- `--no_tools`: Disable tool-use functionality.
+- `--no_tools`: Disable all tool-use functionality.
 - `--max_tokens`: Maximum new tokens to generate (default: 500).

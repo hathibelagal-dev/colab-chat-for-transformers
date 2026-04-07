@@ -3,20 +3,11 @@ import json
 import os
 import torch
 import importlib.util
+import subprocess
 from datetime import datetime
 from transformers import pipeline
 
 # --- Default Tools ---
-
-def get_weather(location: str):
-    """
-    Get the current weather in a given location.
-
-    Args:
-        location: The city name, e.g. London, Tokyo, San Francisco.
-    """
-    # Mock weather data
-    return {"location": location, "temperature": "22°C", "condition": "Sunny"}
 
 def calculate(expression: str):
     """
@@ -32,7 +23,63 @@ def calculate(expression: str):
     except Exception as e:
         return {"error": str(e)}
 
-DEFAULT_TOOLS = [get_weather, calculate]
+def run_shell_command(command: str):
+    """
+    Execute a bash shell command and return its output.
+
+    Args:
+        command: The shell command to execute, e.g., 'ls -l', 'grep pattern file.txt'.
+    """
+    try:
+        result = subprocess.run(
+            command, 
+            shell=True, 
+            capture_output=True, 
+            text=True, 
+            timeout=30
+        )
+        return {
+            "stdout": result.stdout,
+            "stderr": result.stderr,
+            "exit_code": result.returncode
+        }
+    except subprocess.TimeoutExpired:
+        return {"error": "Command timed out after 30 seconds."}
+    except Exception as e:
+        return {"error": str(e)}
+
+def read_file(path: str):
+    """
+    Read the contents of a file.
+
+    Args:
+        path: The absolute or relative path to the file.
+    """
+    try:
+        with open(path, 'r') as f:
+            content = f.read()
+        return {"content": content, "path": path}
+    except Exception as e:
+        return {"error": str(e), "path": path}
+
+def write_file(path: str, content: str):
+    """
+    Write content to a file, overwriting it if it already exists.
+
+    Args:
+        path: The absolute or relative path where the file should be written.
+        content: The text content to write to the file.
+    """
+    try:
+        # Create directories if they don't exist
+        os.makedirs(os.path.dirname(path), exist_ok=True) if os.path.dirname(path) else None
+        with open(path, 'w') as f:
+            f.write(content)
+        return {"status": "success", "path": path}
+    except Exception as e:
+        return {"error": str(e), "path": path}
+
+DEFAULT_TOOLS = [calculate, run_shell_command, read_file, write_file]
 
 # --- Helper Functions ---
 
@@ -221,6 +268,8 @@ def main():
         # For display, get names from functions or dictionaries
         tool_names = [t.__name__ if hasattr(t, "__name__") else (t.get("name") or t.get("function", {}).get("name")) for t in tools]
         print(f"Tools enabled: {tool_names}")
+        if not args.no_tools:
+            print("\033[91mWARNING: This model has access to your shell and file system. Proceed with caution.\033[0m")
     if session_file and not args.no_save:
         print(f"This session will be saved to: {session_file}")
     print("-" * 50)
