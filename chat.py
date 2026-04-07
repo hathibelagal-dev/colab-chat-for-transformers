@@ -133,15 +133,16 @@ def main():
     parser.add_argument("--shell", action="store_true", help="Enable the shell command tool")
     parser.add_argument("--read", action="store_true", help="Enable the file reading tool")
     parser.add_argument("--write", action="store_true", help="Enable the file writing tool")
+    parser.add_argument("--yolo", action="store_true", help="Enable all tools at once (BE CAREFUL)")
     
     args = parser.parse_args()
 
     # Load core tools based on opt-in flags
     tools = []
-    if args.calculate: tools.append(calculate)
-    if args.shell: tools.append(run_shell_command)
-    if args.read: tools.append(read_file)
-    if args.write: tools.append(write_file)
+    if args.calculate or args.yolo: tools.append(calculate)
+    if args.shell or args.yolo: tools.append(run_shell_command)
+    if args.read or args.yolo: tools.append(read_file)
+    if args.write or args.yolo: tools.append(write_file)
     
     tool_map = {t.__name__: t for t in tools}
 
@@ -202,7 +203,7 @@ def main():
         tool_names = [t.__name__ for t in tools]
         print(f"Tools enabled: {tool_names}")
         # Only show the warning if shell, read, or write tools are enabled
-        if any([args.shell, args.read, args.write]):
+        if any([args.shell, args.read, args.write, args.yolo]):
             print("\033[91mWARNING: This model has access to your shell and/or file system. Proceed with caution.\033[0m")
     else:
         print("No tools enabled.")

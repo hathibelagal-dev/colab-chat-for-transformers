@@ -35,14 +35,15 @@ By default, all tools are disabled for security. You can enable them individuall
 - **`--shell`**: Enable execution of bash shell commands.
 - **`--read`**: Enable reading files from your system.
 - **`--write`**: Enable writing or updating files on your system.
+- **`--yolo`**: Enable **all** core tools at once (BE CAREFUL).
 
-**Example: Enable shell and file reading**
+**Example: Enable all tools**
 ```bash
-python chat.py --shell --read
+python chat.py --yolo
 ```
 
 > [!WARNING]
-> **Security Note**: Enabling `--shell`, `--read`, or `--write` gives the LLM direct access to your system. Always review the tool calls (indicated by `[*] Calling tool: ...`) in your console.
+> **Security Note**: Enabling `--shell`, `--read`, `--write`, or `--yolo` gives the LLM direct access to your system. Always review the tool calls (indicated by `[*] Calling tool: ...`) in your console.
 
 ### Save/Load Sessions
 Sessions are saved to the `sessions/` directory.
