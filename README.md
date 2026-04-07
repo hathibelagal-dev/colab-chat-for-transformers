@@ -30,22 +30,38 @@ python chat.py
 
 ### Tool Use
 The application includes built-in tools like `get_weather` and `calculate`.
-Example question: *"What is the weather in Paris?"* or *"What is 15 * 24?"*.
 
-- **Custom Tools**: Create a Python file (e.g., `my_tools.py`) and define functions with Google-style docstrings.
-  ```python
-  def get_stock_price(symbol: str):
-      """
-      Get the current stock price for a given symbol.
-      Args:
-          symbol: The stock symbol (e.g. AAPL, TSLA).
-      """
-      return {"symbol": symbol, "price": 150.00}
-  ```
-  Run with:
-  ```bash
-  python chat.py --tools_file my_tools.py
-  ```
+#### 1. Python Tool Definitions
+Create a Python file and define functions with Google-style docstrings.
+```bash
+python chat.py --tools_file my_tools.py
+```
+
+#### 2. JSON Tool Definitions
+You can also pass tool schemas via a JSON file.
+```bash
+python chat.py --tools_json tools.json
+```
+**Example `tools.json`**:
+```json
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "get_stock_price",
+      "description": "Get current stock price",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "symbol": {"type": "string"}
+        },
+        "required": ["symbol"]
+      }
+    }
+  }
+]
+```
+*Note: If the tool name in the JSON matches a built-in function (e.g., `get_weather`), it will use that function. Otherwise, it will provide a mock response for testing.*
 
 ### Save/Load Sessions
 Sessions are saved to the `sessions/` directory.
@@ -54,22 +70,8 @@ Sessions are saved to the `sessions/` directory.
   ```bash
   python chat.py --load sessions/chat_20260407_120000.json
   ```
-- **Custom session name**:
-  ```bash
-  python chat.py --session_name research_session
-  ```
 
 ### Advanced Options
-- `--model`: Hugging Face model ID (e.g., `Qwen/Qwen2.5-7B-Instruct`).
+- `--model`: Hugging Face model ID.
 - `--no_tools`: Disable tool-use functionality.
 - `--max_tokens`: Maximum new tokens to generate (default: 500).
-
-## Example
-```
-Loading model: HuggingFaceTB/SmolLM2-1.7B-Instruct...
-Tools enabled: ['get_weather', 'calculate']
---------------------------------------------------
-You: What's the weather in Tokyo?
-[*] Calling tool: get_weather({'location': 'Tokyo'})
-Assistant: The current weather in Tokyo is sunny with a temperature of 22°C.
-```

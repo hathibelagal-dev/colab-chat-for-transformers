@@ -46,14 +46,30 @@ def load_tools_from_file(file_path):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     
-    # Assume the user defines a 'tools' list in their file
     if hasattr(module, "tools") and isinstance(module.tools, list):
         return module.tools
     else:
-        # Or just pick up all callable functions that have a docstring
         return [getattr(module, name) for name in dir(module) 
                 if callable(getattr(module, name)) and not name.startswith("_") 
                 and getattr(module, name).__doc__]
+
+def load_tools_from_json(file_path):
+    """Loads a list of tool schemas from a JSON file."""
+    if not os.path.exists(file_path):
+        print(f"Error: JSON Tools file '{file_path}' not found.")
+        return []
+    
+    try:
+        with open(file_path, 'r') as f:
+            tools_json = json.load(f)
+            # Ensure it's a list
+            if not isinstance(tools_json, list):
+                print("Error: JSON tools file must contain a list of tool schemas.")
+                return []
+            return tools_json
+    except Exception as e:
+        print(f"Error loading JSON tools: {e}")
+        return []
 
 def save_session(messages, filename, model_name):
     """Saves the conversation history to a JSON file."""
@@ -79,7 +95,7 @@ def main():
         "--model", 
         type=str, 
         default="HuggingFaceTB/SmolLM2-1.7B-Instruct",
-        help="The model ID (default: HuggingFaceTB/SmolLM2-1.7B-Instruct, which supports tools)"
+        help="The model ID (default: HuggingFaceTB/SmolLM2-1.7B-Instruct)"
     )
     parser.add_argument(
         "--max_tokens",
@@ -112,17 +128,41 @@ def main():
         type=str,
         help="Path to a Python file containing custom tool functions"
     )
+    parser.add_argument(
+        "--tools_json",
+        type=str,
+        help="Path to a JSON file containing tool schemas"
+    )
     args = parser.parse_args()
 
     # Load tools
     tools = []
+    tool_map = {}
+    
     if not args.no_tools:
         if args.tools_file:
             tools = load_tools_from_file(args.tools_file)
+            tool_map = {t.__name__: t for t in tools}
+        elif args.tools_json:
+            tools = load_tools_from_json(args.tools_json)
+            # For JSON tools, we use names for the map
+            # Try to map names to built-in functions if they exist
+            built_in_map = {t.__name__: t for t in DEFAULT_TOOLS}
+            for t in tools:
+                # JSON tools are dictionaries
+                if isinstance(t, dict):
+                    # Handle both standard and function formats
+                    name = t.get("name") or t.get("function", {}).get("name")
+                    if name in built_in_map:
+                        tool_map[name] = built_in_map[name]
+                    else:
+                        # Define a mock executor for unknown JSON tools
+                        def mock_tool(**kwargs):
+                            return {"status": "success", "message": "Tool executed (mock)", "args_received": kwargs}
+                        tool_map[name] = mock_tool
         else:
             tools = DEFAULT_TOOLS
-    
-    tool_map = {t.__name__: t for t in tools}
+            tool_map = {t.__name__: t for t in tools}
 
     # Setup session file
     session_dir = "sessions"
@@ -178,7 +218,9 @@ def main():
 
     print("\nChat started! Type 'exit' or 'quit' to end the conversation.")
     if tools:
-        print(f"Tools enabled: {[t.__name__ for t in tools]}")
+        # For display, get names from functions or dictionaries
+        tool_names = [t.__name__ if hasattr(t, "__name__") else (t.get("name") or t.get("function", {}).get("name")) for t in tools]
+        print(f"Tools enabled: {tool_names}")
     if session_file and not args.no_save:
         print(f"This session will be saved to: {session_file}")
     print("-" * 50)
@@ -196,10 +238,8 @@ def main():
 
             messages.append({"role": "user", "content": user_input})
 
-            # Tool-use loop: The model might call tools multiple times
+            # Tool-use loop
             while True:
-                # Call pipeline
-                # 'tools' arg is only passed if the model supports it and we have tools
                 outputs = pipe(
                     messages, 
                     tools=tools if tools else None,
@@ -210,7 +250,6 @@ def main():
                 assistant_message = outputs[0]["generated_text"][-1]
                 
                 if "tool_calls" in assistant_message and assistant_message["tool_calls"]:
-                    # Model wants to call tools
                     messages.append(assistant_message)
                     
                     for tool_call in assistant_message["tool_calls"]:
@@ -234,16 +273,13 @@ def main():
                             "content": json.dumps(result)
                         })
                     
-                    # After adding tool results, loop back to let the model generate the final response
                     continue
                 else:
-                    # Model provided a text response
                     assistant_response = assistant_message.get("content", "")
                     print(f"Assistant: {assistant_response}")
                     messages.append(assistant_message)
                     break
 
-            # Save session after each turn
             if session_file and not args.no_save:
                 save_session(messages, session_file, current_model)
 
