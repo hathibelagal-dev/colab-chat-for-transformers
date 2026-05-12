@@ -223,9 +223,14 @@ def main():
             "text-generation", 
             model=current_model, 
             device_map="auto",
-            dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
+            torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
             **model_kwargs
         )
+        
+        # Configure generation defaults to avoid warnings and ensure tool-use consistency
+        pipe.model.generation_config.max_new_tokens = args.max_tokens
+        pipe.model.generation_config.pad_token_id = pipe.tokenizer.eos_token_id
+        pipe.model.generation_config.max_length = None
         
         # Initialize streamer only if no tools are enabled
         streamer = None
@@ -274,8 +279,7 @@ def main():
                 outputs = pipe(
                     messages, 
                     tools=tools if tools else None,
-                    streamer=streamer,
-                    max_new_tokens=8192*2
+                    streamer=streamer
                 )
                 
                 assistant_message = outputs[0]["generated_text"][-1]
