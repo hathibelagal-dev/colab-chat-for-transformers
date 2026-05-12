@@ -32,10 +32,14 @@ Alternatively, for local development:
 
 ## Usage
 
-### Basic Chat
-Once installed, you can start the chat from anywhere in your terminal using the `colab_chat` command:
+### GGUF Support
+You can chat with GGUF models by pointing to a `.gguf` file:
 ```bash
-colab_chat
+colab_chat --model path/to/model.gguf
+```
+Or by specifying the repository and the GGUF file separately:
+```bash
+colab_chat --model TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF --gguf_file tinyllama-1.1b-chat-v1.0.Q6_K.gguf
 ```
 
 ### Enabling Core Tools

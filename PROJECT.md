@@ -3,7 +3,7 @@
 A minimal, secure-by-default CLI chat application for interacting with instruction-tuned LLMs using the Hugging Face `transformers` library.
 
 ## Current Progress
-- **Chat Engine**: Modern `text-generation` pipeline with support for any model from the Hub.
+- **Chat Engine**: Modern `text-generation` pipeline with support for any model from the Hub. Added native **GGUF support** via the `gguf_file` parameter and auto-detection.
 - **Session Management**: Automated JSON-based saving and loading of conversation history.
 - **Core System Tools**: Powerful, opt-in tools for:
   - `calculate`: Math expression evaluation.
@@ -12,6 +12,7 @@ A minimal, secure-by-default CLI chat application for interacting with instructi
   - `write_file`: File creation and updates.
 - **Security Model**: Tools are disabled by default. Individual flags or `--yolo` required for activation.
 - **Customization**: Supports custom system prompts from text files via `--system_prompt`.
+- **Documentation**: Generated `GEMINI.md` for architectural context and project instructions.
 - **Distribution**: Available on [PyPI](https://pypi.org/project/colab-chat/) with `colab_chat` console command.
 
 ## Next Steps

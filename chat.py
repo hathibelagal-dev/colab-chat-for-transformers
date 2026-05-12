@@ -132,6 +132,11 @@ def main():
         type=str,
         help="Path to a text file containing a custom system prompt"
     )
+    parser.add_argument(
+        "--gguf_file",
+        type=str,
+        help="The specific GGUF file to load from a repo or directory"
+    )
     
     # Tool-enabling flags
     parser.add_argument("--calculate", action="store_true", help="Enable the calculation tool")
@@ -170,8 +175,16 @@ def main():
     ]
     
     current_model = args.model
-    session_file = None
+    gguf_file = args.gguf_file
 
+    # Auto-detect GGUF if model ends in .gguf
+    if current_model.endswith(".gguf"):
+        if not gguf_file:
+            gguf_file = os.path.basename(current_model)
+            current_model = os.path.dirname(current_model) or "."
+            print(f"Detected GGUF model. Using model directory: {current_model}, file: {gguf_file}")
+
+    session_file = None
     if args.load:
         session_data = load_session(args.load)
         if session_data:
@@ -202,11 +215,16 @@ def main():
     print(f"Loading model: {current_model}...")
     
     try:
+        model_kwargs = {}
+        if gguf_file:
+            model_kwargs["gguf_file"] = gguf_file
+
         pipe = pipeline(
             "text-generation", 
             model=current_model, 
             device_map="auto",
-            dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32
+            dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
+            **model_kwargs
         )
         
         # Initialize streamer only if no tools are enabled
